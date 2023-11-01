@@ -124,9 +124,9 @@ async def canthinkygif(ctx, cosplay=""):
 
     await ctx.send(message_to_send.system_content)
 
-@bot.command()
-async def canthinkyvideo(ctx, year='', keyword=''):
-    
+@bot.slash_command(name="canthinkyvideo", description="send a video")
+@commands.canthinkyvideo()
+async def console(ctx: discord.ApplicationContext, year: Option(str, "2022, 2023", required = False, default = ''), userid: Option(str, "manually enter tiktok userID, for deleted users", required = False, default = ''), keyword: Option(str, "tag in description", required = False, default = '')):
     gifs = []
     gifs.append([bot.get_channel(1169328746763931658), "2023"])
     gifs.append([bot.get_channel(1169327829679357992), "2022"])
@@ -147,6 +147,35 @@ async def canthinkyvideo(ctx, year='', keyword=''):
         if keyword in message.system_content:
             filtered_messages.append(message)
 
+    if len(filtered_messages) == 0:
+        filtered_messages = all_messages
+
+    message_to_send = random.choice(filtered_messages) 
+    max_tries = 10
+    times = 1
+    while(len(message_to_send.attachments) == 0):
+        message_to_send = random.choice(filtered_messages)
+        times += 1
+        if (times > max_tries):
+            ctx.response.send_message("ERROR: Unable to find any message with attachment (within " + str(max_tries) + " tries)!")
+            return
+
+    attachment = random.choice(message_to_send.attachments)
+    
+    await ctx.response.send_message(content=attachment.url)  
+
+@bot.command()
+async def canthinkyvideo(ctx):
+    
+    gifs = []
+    gifs.append([bot.get_channel(1169328746763931658), "2023"])
+    gifs.append([bot.get_channel(1169327829679357992), "2022"])
+
+    all_messages = []
+    for channel in gifs:
+        async for message in channel[0].history(limit=None):
+            all_messages.append(message)
+
     message_to_send = random.choice(all_messages) 
     max_tries = 10
     times = 1
@@ -158,8 +187,9 @@ async def canthinkyvideo(ctx, year='', keyword=''):
             return
 
     attachment = random.choice(message_to_send.attachments)
+    message = attachment.url
 
-    await ctx.send(attachment.url)
+    await ctx.send(message)
 
 @bot.command()
 async def canthinky(ctx):
