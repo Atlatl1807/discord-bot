@@ -184,4 +184,9 @@ async def canthinky(ctx):
     await ctx.send(attachment.url)
 
 
+@bot.slash_command(name="shutdown", description="restart the bot")
+@commands.is_owner()
+async def shutdown(interaction: discord.Interaction):               
+    exit()
+
 bot.run(TOKEN)   #replace TOKEN with your bots token if you are not working with a seperate file to protect the token put the token in quotation marks.
