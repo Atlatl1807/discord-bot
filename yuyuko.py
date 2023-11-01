@@ -78,7 +78,7 @@ async def tiktok_archiver(interaction: discord.Interaction, username: Option(str
                     iterator += 1
 
     if len(all_videoData) == 0:
-        await interaction.followup.send_message("ERROR: No videos found.")
+        await interaction.followup.send("ERROR: No videos found.")
         return
 
     for videoData in all_videoData:
@@ -187,7 +187,7 @@ async def canthinky(ctx):
 @bot.slash_command(name="shutdown", description="restart the bot")
 @commands.is_owner()
 async def shutdown(interaction: discord.Interaction):
-    interaction.channel.send(content="Shutting Down..", ephemeral=True)               
+    interaction.response.send_message(content="Shutting Down..", ephemeral=True)               
     exit()
 
 bot.run(TOKEN)   #replace TOKEN with your bots token if you are not working with a seperate file to protect the token put the token in quotation marks.
