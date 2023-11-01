@@ -191,9 +191,9 @@ async def shutdown(interaction: discord.Interaction):
     await interaction.response.send_message(content="Shutting Down..", ephemeral=True)               
     exit()
 
-@bot.slash_command(name="shell", description="do a command")
+@bot.slash_command(name="console", description="do a command")
 @commands.is_owner()
-async def shell(interaction: discord.Interaction, command: str):
+async def console(interaction: discord.Interaction, command: str):
     output = subprocess.Popen( command, stdout=subprocess.PIPE ).communicate()[0]
     await interaction.response.send_message(content=output, ephemeral=True)               
 
