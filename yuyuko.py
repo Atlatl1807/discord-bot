@@ -125,7 +125,7 @@ async def canthinkygif(ctx, cosplay=""):
     await ctx.send(message_to_send.system_content)
 
 @bot.slash_command(name="canthinkyvideo", description="send a video")
-async def canthinkyvideo(ctx: discord.ApplicationContext, year: Option(str, "2022, 2023", required = False, default = ''), userid: Option(str, "manually enter tiktok userID, for deleted users", required = False, default = ''), keyword: Option(str, "tag in description", required = False, default = '')):
+async def canthinkyvideo(ctx: discord.ApplicationContext, year: Option(str, "2022, 2023", required = False, default = ''), keyword: Option(str, "tag in description", required = False, default = '')):
     gifs = []
     gifs.append([bot.get_channel(1169328746763931658), "2023"])
     gifs.append([bot.get_channel(1169327829679357992), "2022"])
