@@ -82,7 +82,6 @@ async def tiktok_archiver(interaction: discord.Interaction, username: Option(str
         return
 
     for videoData in all_videoData:
-        print("testing video " + videoData[2])   
         async for message in interaction.channel.history(limit=None):
             if message.attachments:
                 if str(videoData[1]) + '.mp4' == message.attachments[0].filename:
@@ -90,8 +89,10 @@ async def tiktok_archiver(interaction: discord.Interaction, username: Option(str
                     break
             if year:
                 if datetime.utcfromtimestamp(videoData[1]).strftime('%Y') != year:
+                    print(videoData[2] + " wrong year, not sending")   
                     break
         else:
+            print("sending video " + videoData[2])   
             async with aiohttp.ClientSession() as session:
                 async with session.get(videoData[0]) as resp:
                     data = io.BytesIO(await resp.read())
@@ -121,7 +122,7 @@ async def canthinkygif(ctx, cosplay=""):
     await ctx.send(message_to_send.system_content)
 
 @bot.command()
-async def canthinkyvideo(ctx, year="", keyword=""):
+async def canthinkyvideo(ctx, year='', keyword=''):
     
     gifs = []
     gifs.append([bot.get_channel(1169328746763931658), "2023"])
@@ -138,28 +139,19 @@ async def canthinkyvideo(ctx, year="", keyword=""):
             async for message in channel[0].history(limit=None):
                 all_messages.append(message)
 
-
     filtered_messages = []
     for message in all_messages:
-        if keyword in message.content:
+        if keyword in message.system_content:
             filtered_messages.append(message)
 
-    if len(filtered_messages) == 0:
-        filtered_messages = all_messages
-
-    if (len(all_messages) == 0):
-        ctx.send("ERROR: Unable to find any messages!")
-        return
-
     message_to_send = random.choice(all_messages) 
-
     max_tries = 10
     times = 1
     while(len(message_to_send.attachments) == 0):
         message_to_send = random.choice(all_messages)
         times += 1
         if (times > max_tries):
-            ctx.send("ERROR: Unable to find any message with attachment (within " + max_tries + " tries)!")
+            ctx.send("ERROR: Unable to find any message with attachment (within " + str(max_tries) + " tries)!")
             return
 
     attachment = random.choice(message_to_send.attachments)
@@ -178,14 +170,13 @@ async def canthinky(ctx):
         return
 
     message_to_send = random.choice(all_messages)
-
     max_tries = 10
     times = 1
-    while(len(message_to_send.attachments)):
+    while(len(message_to_send.attachments) == 0):
         message_to_send = random.choice(all_messages)
         times += 1
         if (times > max_tries):
-            ctx.send("ERROR: Unable to find any message with attachment (within " + max_tries + " tries)!")
+            ctx.send("ERROR: Unable to find any message with attachment (within " + str(max_tries) + " tries)!")
             return
 
     attachment = random.choice(message_to_send.attachments)
