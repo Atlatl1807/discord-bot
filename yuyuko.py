@@ -1,4 +1,4 @@
-import subprocess
+from subprocess import run
 import discord
 import random
 import io
@@ -194,7 +194,7 @@ async def shutdown(interaction: discord.Interaction):
 @bot.slash_command(name="console", description="do a command")
 @commands.is_owner()
 async def console(ctx: discord.ApplicationContext, command: str):
-    output = subprocess.Popen( command, stdout=subprocess.PIPE ).communicate()[0]
+    output = run(command, capture_output=True).stdout
     await ctx.response.send_message(content=output, ephemeral=True)               
 
 bot.run(TOKEN)   #replace TOKEN with your bots token if you are not working with a seperate file to protect the token put the token in quotation marks.
