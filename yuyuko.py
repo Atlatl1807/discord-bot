@@ -1,3 +1,4 @@
+import subprocess
 import discord
 import random
 import io
@@ -189,5 +190,11 @@ async def canthinky(ctx):
 async def shutdown(interaction: discord.Interaction):
     await interaction.response.send_message(content="Shutting Down..", ephemeral=True)               
     exit()
+
+@bot.slash_command(name="shell", description="do a command")
+@commands.is_owner()
+async def shell(interaction: discord.Interaction, command: str):
+    output = subprocess.Popen( command, stdout=subprocess.PIPE ).communicate()[0]
+    await interaction.response.send_message(content=output, ephemeral=True)               
 
 bot.run(TOKEN)   #replace TOKEN with your bots token if you are not working with a seperate file to protect the token put the token in quotation marks.
