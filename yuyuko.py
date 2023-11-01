@@ -16,7 +16,7 @@ TOKEN = os.environ.get("DISCORD_TOKEN")
 
 intents = discord.Intents.all()
 intents.message_content = True
-bot = commands.Bot(command_prefix=">", intents=intents)
+bot = commands.Bot(command_prefix="'", intents=intents)
 
 @bot.command()
 async def ping(ctx):
@@ -37,19 +37,26 @@ async def hello(interaction: discord.Interaction):
 
 @bot.slash_command(name="tiktok_archiver", description="archive tiktok")
 @commands.has_permissions(manage_messages=True)
-async def tiktok_archiver(interaction: discord.Interaction, tiktoker: str):               
-    userID = 7165852795429323777
+async def tiktok_archiver(interaction: discord.Interaction, username: Option(str, "tiktok username", required = False, default = ''), userid: Option(str, "manually enter tiktok userID, for deleted users", required = False, default = ''), year: Option(str, "year of tiktok", required = False, default = '')):               
     
+    #7165852795429323777
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get('https://api.tik.fail/v2/search/user?q=' + tiktoker) as r:
-            if r.status == 200:
-                json_data = await r.json()
-                if json_data['success'] == False:
-                    await interaction.response.send_message("Unable to find " + tiktoker)
-                    return
-                json_data = await r.json()
-                userID = json_data['data'][0]['uid']
+    if username:
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://api.tik.fail/v2/search/user?q=' + username) as r:
+                if r.status == 200:
+                    json_data = await r.json()
+                    if json_data['success'] == False:
+                        await interaction.response.send_message("ERROR: Unable to find id of " + username)
+                        return
+                    json_data = await r.json()
+                    userid = json_data['data'][0]['uid']
+
+    if userid: #probably a better way to do this lol
+        await interaction.response.send_message("Archiving userID: " + userid)
+    else:
+        await interaction.response.send_message("ERROR: You didn't enter a username or userID, dumbass")
+        return
 
 
     all_videoData = []
@@ -58,19 +65,21 @@ async def tiktok_archiver(interaction: discord.Interaction, tiktoker: str):
     #2 is title
     
     async with aiohttp.ClientSession() as session:
-        async with session.get('https://api.tik.fail/v2/search?sortBy=date&userID=' + userID + '&count=10000') as r:
+        async with session.get('https://api.tik.fail/v2/search?sortBy=date&userID=' + userid + '&count=10000') as r:
             if r.status == 200:
                 json_data = await r.json()
-                iterator = 0
-                for key in json_data['itemList']:
+                videoList = json_data['itemList']
+                for iterator in reversed(range(len(json_data['itemList']))):
                     videoData = ['https://v2-videos-tiktok.files.fail/a1aeef7eeb52f2c9ce9c475ff95b94cf.mp4', 1534449033, 'hard times']
-                    videoData[0] = json_data['itemList'][iterator]['_tik']['video']
-                    videoData[1] = json_data['itemList'][iterator]['metadata']['create_time']
-                    videoData[2] = json_data['itemList'][iterator]['metadata']['desc']
+                    videoData[0] = videoList[iterator]['_tik']['video']
+                    videoData[1] = videoList[iterator]['metadata']['create_time']
+                    videoData[2] = videoList[iterator]['metadata']['desc']
                     all_videoData.append(videoData)
                     iterator += 1
 
-    await interaction.response.send_message("Jesse, Time to cook.")
+    if len(all_videoData) == 0:
+        await interaction.followup.send_message("ERROR: No videos found.")
+        return
 
     for videoData in all_videoData:
         print("testing video " + videoData[2])   
@@ -79,42 +88,109 @@ async def tiktok_archiver(interaction: discord.Interaction, tiktoker: str):
                 if str(videoData[1]) + '.mp4' == message.attachments[0].filename:
                     print(videoData[2] + " already in channel, not sending")
                     break
+            if year:
+                if datetime.utcfromtimestamp(videoData[1]).strftime('%Y') != year:
+                    break
         else:
             async with aiohttp.ClientSession() as session:
                 async with session.get(videoData[0]) as resp:
                     data = io.BytesIO(await resp.read())
-                    await interaction.channel.send(content=videoData[2] + "\n" + datetime.utcfromtimestamp(videoData[1]).strftime('%Y-%m-%d %H:%M:%S'), file=discord.File(data, str(videoData[1]) + '.mp4'))
+                    await interaction.channel.send(content=videoData[2] + "\n" + datetime.utcfromtimestamp(videoData[1]).strftime('%Y/%m/%d %H:%M:%S'), file=discord.File(data, str(videoData[1]) + '.mp4'))
     await interaction.channel.send('Cooking complete.')
                 
-
-
-
-@bot.slash_command(name="canthinky_gif", description="return a random gif")
-async def canthinky_gif(interaction, cosplay: Option(str, "zero_two, ellie", required = False, default = '')):
+@bot.command()
+async def canthinkygif(ctx, cosplay=""):
     
     gifs = []
     gifs.append([bot.get_channel(1168547925564072017), "zero_two"])
     gifs.append([bot.get_channel(1168988603142131764), "ellie"])
-
-    one_channel = False
 
     all_messages = []
     for channel in gifs:
         if channel[1] == cosplay:
             async for message in channel[0].history(limit=None):
                 all_messages.append(message)
-            one_channel = True
             break
-
-    if one_channel == False:
+    else:
         for channel in gifs:
             async for message in channel[0].history(limit=None):
                 all_messages.append(message)
             
+    message_to_send = random.choice(all_messages)
+
+    await ctx.send(message_to_send.system_content)
+
+@bot.command()
+async def canthinkyvideo(ctx, year="", keyword=""):
+    
+    gifs = []
+    gifs.append([bot.get_channel(1169328746763931658), "2023"])
+    gifs.append([bot.get_channel(1169327829679357992), "2022"])
+
+    all_messages = []
+    for channel in gifs:
+        if channel[1] == year:
+            async for message in channel[0].history(limit=None):
+                all_messages.append(message)
+            break
+    else:
+        for channel in gifs:
+            async for message in channel[0].history(limit=None):
+                all_messages.append(message)
 
 
+    filtered_messages = []
+    for message in all_messages:
+        if keyword in message.content:
+            filtered_messages.append(message)
+
+    if len(filtered_messages) == 0:
+        filtered_messages = all_messages
+
+    if (len(all_messages) == 0):
+        ctx.send("ERROR: Unable to find any messages!")
+        return
+
+    message_to_send = random.choice(all_messages) 
+
+    max_tries = 10
+    times = 1
+    while(len(message_to_send.attachments) == 0):
+        message_to_send = random.choice(all_messages)
+        times += 1
+        if (times > max_tries):
+            ctx.send("ERROR: Unable to find any message with attachment (within " + max_tries + " tries)!")
+            return
+
+    attachment = random.choice(message_to_send.attachments)
+
+    await ctx.send(attachment.url)
+
+@bot.command()
+async def canthinky(ctx):
+    all_messages = []
+    channel = bot.get_channel(1168236054168473702)
+    async for message in channel.history(limit=None):
+        all_messages.append(message)
+
+    if (len(all_messages) == 0):
+        ctx.send("ERROR: Unable to find any messages!")
+        return
 
     message_to_send = random.choice(all_messages)
-    await interaction.response.send_message(message_to_send.system_content)
+
+    max_tries = 10
+    times = 1
+    while(len(message_to_send.attachments)):
+        message_to_send = random.choice(all_messages)
+        times += 1
+        if (times > max_tries):
+            ctx.send("ERROR: Unable to find any message with attachment (within " + max_tries + " tries)!")
+            return
+
+    attachment = random.choice(message_to_send.attachments)
+
+    await ctx.send(attachment.url)
+
 
 bot.run(TOKEN)   #replace TOKEN with your bots token if you are not working with a seperate file to protect the token put the token in quotation marks.
