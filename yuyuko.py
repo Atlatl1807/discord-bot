@@ -88,7 +88,11 @@ async def tiktok_archiver(interaction: discord.Interaction, username: Option(str
         async for message in interaction.channel.history(limit=None):
             if message.attachments:
                 if str(videoData[1]) + '.mp4' == message.attachments[0].filename:
-                    print(videoData[2] + " already in channel, not sending")
+                    if videoData[2]:
+                        title = videoData[2]
+                    else:
+                        title = "[No title, ID: " + videoData[1] + "]"
+                    print(title + " already in channel, not sending")
                     break
             if year:
                 if datetime.utcfromtimestamp(videoData[1]).strftime('%Y') != year:
