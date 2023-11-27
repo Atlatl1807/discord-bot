@@ -98,7 +98,7 @@ async def tiktok_archiver(interaction: discord.Interaction, username: Option(str
         if videoData[2]:
             title = videoData[2]
         else:
-            title = "[No title, ID: " + videoData[1] + "]"
+            title = "[No title, ID: " + str(videoData[1]) + "]"
 
         if filename in channel_files:
             print(title + " already in channel, not sending")
