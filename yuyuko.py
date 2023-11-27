@@ -84,26 +84,38 @@ async def tiktok_archiver(interaction: discord.Interaction, username: Option(str
         await interaction.followup.send("ERROR: No videos found.")
         return
 
+    # First, get all the filenames from the channel history
+    channel_files = []
+    async for message in interaction.channel.history(limit=None):
+        if message.attachments:
+            filename = message.attachments[0].filename
+            if filename.endswith('.mp4'):
+                channel_files.append(filename)
+
+    # Now, iterate through all_videoData
     for videoData in all_videoData:
-        async for message in interaction.channel.history(limit=None):
-            if message.attachments:
-                if str(videoData[1]) + '.mp4' == message.attachments[0].filename:
-                    if videoData[2]:
-                        title = videoData[2]
-                    else:
-                        title = "[No title, ID: " + videoData[1] + "]"
-                    print(title + " already in channel, not sending")
-                    break
-            if year:
-                if datetime.utcfromtimestamp(videoData[1]).strftime('%Y') != year:
-                    print(videoData[2] + " wrong year, not sending")   
-                    break
+        filename = str(videoData[1]) + '.mp4'
+        if videoData[2]:
+            title = videoData[2]
         else:
-            print("sending video " + videoData[2])   
-            async with aiohttp.ClientSession() as session:
-                async with session.get(videoData[0]) as resp:
-                    data = io.BytesIO(await resp.read())
-                    await interaction.channel.send(content=videoData[2] + "\n" + datetime.utcfromtimestamp(videoData[1]).strftime('%Y/%m/%d %H:%M:%S'), file=discord.File(data, str(videoData[1]) + '.mp4'))
+            title = "[No title, ID: " + videoData[1] + "]"
+
+        if filename in channel_files:
+            print(title + " already in channel, not sending")
+            continue
+
+        if year:
+            video_year = datetime.utcfromtimestamp(videoData[1]).strftime('%Y')
+            if video_year != year:
+                print(videoData[2] + " wrong year, not sending")   
+                continue
+
+        print("sending video " + videoData[2])   
+        async with aiohttp.ClientSession() as session:
+            async with session.get(videoData[0]) as resp:
+                data = io.BytesIO(await resp.read())
+                await interaction.channel.send(content=videoData[2] + "\n" + datetime.utcfromtimestamp(videoData[1]).strftime('%Y/%m/%d %H:%M:%S'), file=discord.File(data, filename))
+
     await interaction.channel.send('Cooking complete.')
                 
 @bot.command()
